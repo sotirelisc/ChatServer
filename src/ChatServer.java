@@ -17,9 +17,13 @@ public class ChatServer {
         // TODO code application logic here
         yahoo
     }
+<<<<<<< HEAD
     
     static void poutsa() {
         
     }
 
+=======
+giorgaros
+>>>>>>> origin/master
 }
