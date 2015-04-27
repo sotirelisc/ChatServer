@@ -11,18 +11,22 @@ import java.util.logging.Logger;
  * @author Christos Sotirelis
  */
 public class User extends Thread {
+    private final ChatServer server;
     private final Socket socket;
     private final String name;
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
     
-    public User(Socket socket, String name) {
+    public User(ChatServer server, Socket socket, String name) {
+        this.server = server;
         this.socket = socket;
         this.name = name;
     }
     
     // Apostolh mhnumatos ston xrhsth
-    public void sendMessage(ObjectOutputStream oos, Message msg) {
+    public void sendMessage(Message msg) {
         try {
-            oos.writeObject(msg);
+            this.oos.writeObject(msg);
         } catch (IOException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -31,13 +35,13 @@ public class User extends Thread {
     @Override
     public void run() {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            this.oos = new ObjectOutputStream(socket.getOutputStream());
+            this.ois = new ObjectInputStream(socket.getInputStream());
             
             Message new_msg;
             try {
                 new_msg = (Message) ois.readObject();
-                
+                server.sendMessageToAll(new_msg);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             }

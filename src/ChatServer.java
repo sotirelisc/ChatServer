@@ -18,22 +18,21 @@ import java.util.logging.Logger;
  */
 public class ChatServer {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
+    static ArrayList<User> users;
+    
+    public ChatServer() {
         System.out.println("[SERVER LOG]: Starting server..");
         try {
             // Dhmiourgia ServerSocket pou akouei sthn port 6666
             ServerSocket server = new ServerSocket(6666, 50);
             System.out.println("[SERVER LOG]: Server listening on port " + server.getLocalPort() + ".");
             // Lista sundedemenwn xrhstwn
-            ArrayList<User> users = new ArrayList();
+            users = new ArrayList();
             int connected_clients = 0;
             while (true) {
                 // Sundesh neou xrhsth
                 Socket client_socket = server.accept();
-                User new_user = new User(client_socket, "John Doe");
+                User new_user = new User(this, client_socket, "John Doe");
                 users.add(new_user);
                 new_user.start();
                 connected_clients++;
@@ -42,5 +41,18 @@ public class ChatServer {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        // Enarksh tou chat
+        ChatServer chatServer = new ChatServer();
+    }
 
+    void sendMessageToAll(Message msg) {
+        for (User user : users) {
+            user.sendMessage(msg);
+        }
+    }
 }
