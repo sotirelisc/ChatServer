@@ -1,5 +1,7 @@
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.logging.Logger;
 public class ChatServer {
 
     static ArrayList<User> users;
+    private String command;
     
     public ChatServer() {
         System.out.println("[SERVER LOG]: Starting server..");
@@ -32,12 +35,25 @@ public class ChatServer {
             while (true) {
                 // Sundesh neou xrhsth
                 Socket client_socket = server.accept();
+                // Αποθηκεύουμε τις δύο ροές
+                ObjectOutputStream out = new ObjectOutputStream(client_socket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(client_socket.getInputStream());
+                
+                command = (String) in.readObject();
+                // Όταν λάβουμε start απαντάμε πάντα waiting
+                if (command.equals("START")) {
+                    System.out.println("got start");
+                    out.writeObject("WAITING");
+                }
+                
                 User new_user = new User(this, client_socket, "John Doe");
                 users.add(new_user);
                 new_user.start();
                 connected_clients++;
             }
         } catch (IOException ex) {
+            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
