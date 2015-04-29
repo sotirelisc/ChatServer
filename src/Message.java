@@ -14,6 +14,12 @@ public class Message {
         this.timestamp = timestamp;
     }
     
+    public Message(String message) {
+        this.message = message;
+        // TODO: Get time now as timestamp
+        this.timestamp = null;
+    }
+    
     public Message() {
         this.message = null;
         this.timestamp = null;

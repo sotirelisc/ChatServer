@@ -8,30 +8,25 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  *
  * @author Christos Sotirelis
  */
 public class ChatServer {
 
-    static ArrayList<User> users;
+    private ArrayList<User> users;
+    private int connected_users;
     private String command;
     
     public ChatServer() {
+        // Lista sundedemenwn xrhstwn
+        users = new ArrayList();
+        connected_users = 0;
         System.out.println("[SERVER LOG]: Starting server..");
         try {
             // Dhmiourgia ServerSocket pou akouei sthn port 6666
             ServerSocket server = new ServerSocket(6666, 50);
             System.out.println("[SERVER LOG]: Server listening on port " + server.getLocalPort() + ".");
-            // Lista sundedemenwn xrhstwn
-            users = new ArrayList();
-            int connected_clients = 0;
             while (true) {
                 // Sundesh neou xrhsth
                 Socket client_socket = server.accept();
@@ -46,14 +41,31 @@ public class ChatServer {
                     out.writeObject("WAITING");
                 }
                 
-                User new_user = new User(this, client_socket, "John Doe");
+                // ANTI GIA TO PARAPANW
+                /*
+                Message welcome = (Message) in.readObject();
+                if (welcome.getMessage().equals("START")) {
+                    out.writeObject(new Message("WAITING"));
+                }
+                */
+                
+                // LEW TO PRWTO MHNUMA TOU CLIENT NA EINAI TO ONOMA TOU GIA ELEGXO
+                // ARA:
+                Message welcome = (Message) in.readObject();
+                if (!exists(welcome.getMessage())) {
+                    out.writeObject(new Message("OK"));
+                } else {
+                    out.writeObject(new Message("ERROR_USERNAME_EXISTS"));
+                    out.close();
+                }
+                
+                // To welcome.getMessage() tha dinei to onoma tou xrhsth afou einai to 1o mhnuma
+                User new_user = new User(this, client_socket, welcome.getMessage());
                 users.add(new_user);
                 new_user.start();
-                connected_clients++;
+                connected_users++;
             }
-        } catch (IOException ex) {
-            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -66,9 +78,27 @@ public class ChatServer {
         ChatServer chatServer = new ChatServer();
     }
 
+    private boolean exists(String name) {
+        for (User user : users) {
+            if (user.getUsername().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     void sendMessageToAll(Message msg) {
         for (User user : users) {
             user.sendMessage(msg);
+        }
+    }
+    
+    private void removeUser(Socket socket) {
+        for (User user : users) {
+            if (user.getSocket() == socket) {
+                users.remove(user);
+                connected_users--;
+            }
         }
     }
 }

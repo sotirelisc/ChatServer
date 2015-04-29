@@ -13,14 +13,22 @@ import java.util.logging.Logger;
 public class User extends Thread {
     private final ChatServer server;
     private final Socket socket;
-    private final String name;
+    private final String username;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     
     public User(ChatServer server, Socket socket, String name) {
         this.server = server;
         this.socket = socket;
-        this.name = name;
+        this.username = name;
+    }
+    
+    public Socket getSocket() {
+        return this.socket;
+    }
+    
+    public String getUsername() {
+        return this.username;
     }
     
     // Apostolh mhnumatos ston xrhsth
@@ -41,7 +49,9 @@ public class User extends Thread {
             Message new_msg;
             try {
                 new_msg = (Message) ois.readObject();
-                server.sendMessageToAll(new_msg);
+                synchronized (this) {
+                    server.sendMessageToAll(new_msg);
+                }
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             }
