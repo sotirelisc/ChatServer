@@ -15,13 +15,16 @@ import java.util.logging.Logger;
 public class ChatServer {
 
     private ArrayList<User> users;
-    private int connected_users;
     private String command;
     
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
         users = new ArrayList();
-        connected_users = 0;
+        
+    }
+    
+    public void startServer() {
+
         System.out.println("[SERVER LOG]: Starting server..");
         try {
             // Dhmiourgia ServerSocket pou akouei sthn port 6666
@@ -30,42 +33,15 @@ public class ChatServer {
             while (true) {
                 // Sundesh neou xrhsth
                 Socket client_socket = server.accept();
-                // Αποθηκεύουμε τις δύο ροές
-                ObjectOutputStream out = new ObjectOutputStream(client_socket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(client_socket.getInputStream());
                 
-                command = (String) in.readObject();
-                // Όταν λάβουμε start απαντάμε πάντα waiting
-                if (command.equals("START")) {
-                    System.out.println("got start");
-                    out.writeObject("WAITING");
-                }
+                User new_user = new User(this, client_socket);
                 
-                // ANTI GIA TO PARAPANW
-                /*
-                Message welcome = (Message) in.readObject();
-                if (welcome.getMessage().equals("START")) {
-                    out.writeObject(new Message("WAITING"));
-                }
-                */
-                
-                // LEW TO PRWTO MHNUMA TOU CLIENT NA EINAI TO ONOMA TOU GIA ELEGXO
-                // ARA:
-                Message welcome = (Message) in.readObject();
-                if (!exists(welcome.getMessage())) {
-                    out.writeObject(new Message("OK"));
-                } else {
-                    out.writeObject(new Message("ERROR_USERNAME_EXISTS"));
-                    out.close();
-                }
-                
-                // To welcome.getMessage() tha dinei to onoma tou xrhsth afou einai to 1o mhnuma
-                User new_user = new User(this, client_socket, welcome.getMessage());
                 users.add(new_user);
+                
                 new_user.start();
-                connected_users++;
+                
             }
-        } catch (IOException | ClassNotFoundException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -76,6 +52,7 @@ public class ChatServer {
     public static void main(String[] args) {
         // Enarksh tou chat
         ChatServer chatServer = new ChatServer();
+        chatServer.startServer();
     }
 
     private boolean exists(String name) {
@@ -93,11 +70,10 @@ public class ChatServer {
         }
     }
     
-    private void removeUser(Socket socket) {
+    void removeUser(Socket socket) {
         for (User user : users) {
             if (user.getSocket() == socket) {
                 users.remove(user);
-                connected_users--;
             }
         }
     }
