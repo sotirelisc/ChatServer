@@ -15,12 +15,13 @@ import java.util.logging.Logger;
 public class ChatServer {
 
     private ArrayList<User> users;
+    private ArrayList<Message> messageLog;
     private String command;
     
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
         users = new ArrayList();
-        
+        messageLog = new ArrayList();
     }
     
     public void startServer() {
@@ -55,13 +56,18 @@ public class ChatServer {
         chatServer.startServer();
     }
 
-    private boolean exists(String name) {
+    public boolean exists(String name) {
         for (User user : users) {
             if (user.getUsername().equals(name)) {
                 return true;
             }
         }
         return false;
+    }
+    
+    synchronized void addMessage(Message msg) {
+        messageLog.add(msg);
+        sendMessageToAll(msg);
     }
     
     void sendMessageToAll(Message msg) {
@@ -76,5 +82,13 @@ public class ChatServer {
                 users.remove(user);
             }
         }
+    }
+    
+    public ArrayList<String> getUserList() {
+        ArrayList <String> list = new ArrayList();
+        for (User user : users) {
+            list.add(user.getUsername());
+        }
+        return list;
     }
 }
