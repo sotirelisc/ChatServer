@@ -53,7 +53,7 @@ public class User extends Thread {
         try {
             while ((command = (String) in.readObject()) != null) {
                 if (command.equals("START")) {
-                    System.out.println("got start");
+                    System.out.println("got start from " + socket.getInetAddress() + ":" + socket.getPort());
                     out.writeObject("WAITING");
                 } else if (command.equals("USERNAME")) {
 
@@ -61,14 +61,14 @@ public class User extends Thread {
                     System.out.println("got username " + username);
 
                     if (!server.exists(username)) {
-                        out.writeObject("EXISTS");
-                        System.out.println("user exists");
-//                        server.addUser(this);
-//                        System.out.println("username does not exist");
-//
-//                        System.out.println(username + " is connected");
-//                        out.writeObject("USERLIST");
-//                        out.writeObject(server.getUserList());
+                        out.writeObject("DOES NOT EXIST");
+                        //System.out.println("user exists");
+                        server.addUser(this);
+                        System.out.println("username does not exist");
+
+                        System.out.println(username + " is connected");
+                        out.writeObject("USERLIST");
+                        out.writeObject(server.getUserList());
                     } else {
                         System.out.println("user exists");
 
@@ -86,7 +86,7 @@ public class User extends Thread {
         } catch (IOException ex) {
             //Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(username + " disconnected");
-            //server.removeUser(socket);
+            server.removeUser(socket);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }

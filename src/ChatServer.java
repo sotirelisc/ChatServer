@@ -5,18 +5,21 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChatServer {
 
-    private ArrayList<User> users;
+    private List<User> users;
     private ArrayList<Message> messageLog;
     private String command;
 
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
-        users = new ArrayList();
+        users = Collections.synchronizedList(new ArrayList());
         messageLog = new ArrayList();
     }
 
@@ -66,17 +69,22 @@ public class ChatServer {
             user.sendMessage(msg);
         }
     }
+
     void addUser(User theUser) {
         users.add(theUser);
     }
-    
 
-    synchronized void removeUser(Socket socket) {
+    //ConcurrentModificationException will be thrown in this case, even when 
+    //there’s only a single thread running. To fix this problem,
+    //we can’t use the for-each loop since we have to use the remove() 
+    //method of the iterator, which is not accessible within the for-each loop. 
+    //Instead we have to do this:
+    void removeUser(Socket socket) {
         System.out.println("removing user");
-        for (User user : users) {
-            System.out.println("current user = " + user.getUsername());
-            if (user.getSocket() == socket) {
-                users.remove(user);
+        for (Iterator<User> iter = users.iterator(); iter.hasNext();) {
+            User s = iter.next();
+            if (s.getSocket() == socket) {
+                iter.remove();
             }
         }
     }
