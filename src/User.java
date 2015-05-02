@@ -34,7 +34,6 @@ public class User extends Thread {
     // Apostolh mhnumatos ston xrhsth
     public void sendMessage(Message msg) {
         try {
-            this.out.writeObject(username);
             this.out.writeObject(msg);
         } catch (IOException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
@@ -49,25 +48,37 @@ public class User extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         String command;
         try {
-            while ( (command = (String) in.readObject()) != null) {
+            while ((command = (String) in.readObject()) != null) {
                 if (command.equals("START")) {
+                    System.out.println("got start");
                     out.writeObject("WAITING");
                 } else if (command.equals("USERNAME")) {
+
                     username = (String) in.readObject();
-                    
-                    if ( !server.exists(username)  ) {
-                        System.out.println(username + " is connected");
-                        out.writeObject("USERLIST");
-                        out.writeObject(server.getUserList());
-                    }
-                    else {
+                    System.out.println("got username " + username);
+
+                    if (!server.exists(username)) {
+                        out.writeObject("EXISTS");
+                        System.out.println("user exists");
+//                        server.addUser(this);
+//                        System.out.println("username does not exist");
+//
+//                        System.out.println(username + " is connected");
+//                        out.writeObject("USERLIST");
+//                        out.writeObject(server.getUserList());
+                    } else {
+                        System.out.println("user exists");
+
                         out.writeObject("EXISTS");
                     }
-                }
-                else {
-                    Message msg = new Message(command);
+
+                } else {
+                    System.out.println("got message");
+
+                    Message msg = new Message(command, username);
                     System.out.println(username + " says :" + command);
                     server.addMessage(msg);
                 }
@@ -75,6 +86,7 @@ public class User extends Thread {
         } catch (IOException ex) {
             //Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(username + " disconnected");
+            //server.removeUser(socket);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }

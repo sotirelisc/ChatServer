@@ -8,22 +8,18 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Christos Sotirelis
- */
 public class ChatServer {
 
     private ArrayList<User> users;
     private ArrayList<Message> messageLog;
     private String command;
-    
+
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
         users = new ArrayList();
         messageLog = new ArrayList();
     }
-    
+
     public void startServer() {
 
         System.out.println("[SERVER LOG]: Starting server..");
@@ -34,22 +30,14 @@ public class ChatServer {
             while (true) {
                 // Sundesh neou xrhsth
                 Socket client_socket = server.accept();
-                
                 User new_user = new User(this, client_socket);
-                
-                users.add(new_user);
-                
                 new_user.start();
-                
             }
         } catch (IOException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    /**
-     * @param args the command line arguments
-     */
+
     public static void main(String[] args) {
         // Enarksh tou chat
         ChatServer chatServer = new ChatServer();
@@ -57,35 +45,44 @@ public class ChatServer {
     }
 
     public boolean exists(String name) {
+        System.out.println("searching for user " + name);
         for (User user : users) {
+            System.out.println("comparing " + name + " with " + user.getUsername());
+
             if (user.getUsername().equals(name)) {
                 return true;
             }
         }
         return false;
     }
-    
+
     synchronized void addMessage(Message msg) {
         messageLog.add(msg);
         sendMessageToAll(msg);
     }
-    
+
     void sendMessageToAll(Message msg) {
         for (User user : users) {
             user.sendMessage(msg);
         }
     }
+    void addUser(User theUser) {
+        users.add(theUser);
+    }
     
-    void removeUser(Socket socket) {
+
+    synchronized void removeUser(Socket socket) {
+        System.out.println("removing user");
         for (User user : users) {
+            System.out.println("current user = " + user.getUsername());
             if (user.getSocket() == socket) {
                 users.remove(user);
             }
         }
     }
-    
+
     public ArrayList<String> getUserList() {
-        ArrayList <String> list = new ArrayList();
+        ArrayList<String> list = new ArrayList();
         for (User user : users) {
             list.add(user.getUsername());
         }
