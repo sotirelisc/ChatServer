@@ -29,4 +29,8 @@ public class Message implements Serializable {
     public String getTimestamp() {
         return this.timestamp;
     }
+    
+    public String getUsername() {
+        return this.username;
+    }
 }

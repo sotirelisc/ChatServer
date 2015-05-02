@@ -34,6 +34,7 @@ public class User extends Thread {
     // Apostolh mhnumatos ston xrhsth
     public void sendMessage(Message msg) {
         try {
+            this.out.writeObject("MESSAGE");
             this.out.writeObject(msg);
         } catch (IOException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
@@ -72,11 +73,9 @@ public class User extends Thread {
                         out.writeObject("EXISTS");
                     }
 
-                } else {
-                    System.out.println("got message");
-
-                    Message msg = new Message(command, username);
-                    System.out.println(username + " says :" + command);
+                } else if (command.equals("MESSAGE")) {
+                    Message msg = new Message((String) in.readObject(), username);
+                    System.out.println(username + " says :" + msg.getMessage());
                     server.addMessage(msg);
                 }
             }
@@ -84,6 +83,11 @@ public class User extends Thread {
             //Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(username + " disconnected");
             server.removeUser(socket);
+            try {
+                socket.close();
+            } catch (IOException ex1) {
+                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex1);
+            }
             
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
