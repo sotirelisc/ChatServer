@@ -70,8 +70,15 @@ public class ChatServer {
         }
     }
 
+    void sendListToAll() {
+        for (User user : users) {
+            user.sendUserList();
+        }
+    }
+
     void addUser(User theUser) {
         users.add(theUser);
+        sendListToAll();
     }
 
     //ConcurrentModificationException will be thrown in this case, even when 
@@ -85,6 +92,7 @@ public class ChatServer {
             User s = iter.next();
             if (s.getSocket() == socket) {
                 iter.remove();
+                sendListToAll();
             }
         }
     }

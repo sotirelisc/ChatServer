@@ -53,25 +53,22 @@ public class User extends Thread {
         try {
             while ((command = (String) in.readObject()) != null) {
                 if (command.equals("START")) {
-                    System.out.println("got start from " + socket.getInetAddress() + ":" + socket.getPort());
+                    System.out.println("starting connection from " + socket.getInetAddress() + ":" + socket.getPort());
                     out.writeObject("WAITING");
                 } else if (command.equals("USERNAME")) {
 
                     username = (String) in.readObject();
-                    System.out.println("got username " + username);
+                    System.out.println(username + " tries to connect");
 
                     if (!server.exists(username)) {
                         out.writeObject("DOES NOT EXIST");
                         //System.out.println("user exists");
                         server.addUser(this);
-                        System.out.println("username does not exist");
-
+                        
                         System.out.println(username + " is connected");
-                        out.writeObject("USERLIST");
-                        out.writeObject(server.getUserList());
+                        sendUserList();
                     } else {
-                        System.out.println("user exists");
-
+                        System.out.println("Username already exists");
                         out.writeObject("EXISTS");
                     }
 
@@ -87,9 +84,21 @@ public class User extends Thread {
             //Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(username + " disconnected");
             server.removeUser(socket);
+            
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
+
+    public void sendUserList() {
+        try {
+            System.out.println("Sending user list");
+            out.writeObject("USERLIST");
+            out.writeObject(server.getUserList());
+        } catch (IOException ex) {
+            Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }
