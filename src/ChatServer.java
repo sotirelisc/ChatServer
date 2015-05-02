@@ -4,39 +4,75 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 public class ChatServer {
 
     private List<User> users;
     private ArrayList<Message> messageLog;
     private String command;
+    private static SSLSocketFactory factory;
+	private static int Port = 6666;
 
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
         users = Collections.synchronizedList(new ArrayList());
         messageLog = new ArrayList();
-    }
 
+    }
+    
     public void startServer() {
 
         System.out.println("[SERVER LOG]: Starting server..");
         try {
             // Dhmiourgia ServerSocket pou akouei sthn port 6666
-            ServerSocket server = new ServerSocket(6666, 50);
+
+            //Δημιουργούμε αντικειμενο SSLContext
+            SSLContext context = SSLContext.getInstance("SSL");
+
+            //Περνάμε null στα keystore και truststore καθώς δε χρησιμοποιούμε κάποια
+            // CA ή κάποιο certificate. Το securerandom αποτελεί nonce για τη κρυπτογράφηση
+            context.init(null, null, null);
+            SSLServerSocketFactory factory = (SSLServerSocketFactory)SSLServerSocketFactory.getDefault();
+            SSLServerSocket server = (SSLServerSocket) factory.createServerSocket(Port);
+            
+            
             System.out.println("[SERVER LOG]: Server listening on port " + server.getLocalPort() + ".");
             while (true) {
                 // Sundesh neou xrhsth
-                Socket client_socket = server.accept();
+                SSLSocket client_socket = (SSLSocket)server.accept();
+                client_socket.setNeedClientAuth(false);
+                
+                final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
+                client_socket.setEnabledCipherSuites(enabledCipherSuites);
+
+                
+                // Βάζουμε ένα listener για να ξέρουμε πότε ολοκληρώθηκε το handshake
+                client_socket.addHandshakeCompletedListener(new MyHandshakeListener());
+                
                 User new_user = new User(this, client_socket);
                 new_user.start();
             }
         } catch (IOException ex) {
+            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (KeyManagementException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -104,4 +140,11 @@ public class ChatServer {
         }
         return list;
     }
+}
+
+class MyHandshakeListener implements HandshakeCompletedListener {
+	  public void handshakeCompleted(HandshakeCompletedEvent e) {
+	    System.out.println("Handshake succesful! from " + e.getSocket());
+	    System.out.println("Using cipher suite: " + e.getCipherSuite());
+	  }
 }
