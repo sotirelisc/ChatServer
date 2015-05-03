@@ -1,8 +1,4 @@
-
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -22,12 +18,11 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 public class ChatServer {
-
+    private static SSLSocketFactory factory;
+    private static int Port = 6666;
     private List<User> users;
     private ArrayList<Message> messageLog;
     private String command;
-    private static SSLSocketFactory factory;
-	private static int Port = 6666;
 
     public ChatServer() {
         // Lista sundedemenwn xrhstwn
@@ -40,7 +35,6 @@ public class ChatServer {
 
         System.out.println("[SERVER LOG]: Starting server..");
         try {
-            // Dhmiourgia ServerSocket pou akouei sthn port 6666
 
             //Δημιουργούμε αντικειμενο SSLContext
             SSLContext context = SSLContext.getInstance("SSL");
